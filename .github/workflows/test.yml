@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.15.5' # The Go version to download (if necessary) and use.
+    - run: go get gotest.tools/gotestsum
+    - run: make build
+    - run: make fmt
+    - run: make vet
+    - run: make test-unit
