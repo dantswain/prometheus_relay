@@ -17,7 +17,7 @@ import (
 
 var daemon bool
 
-func runCommand(prometheusClientUrl string, postToUrl string) {
+func runCommand(prometheusClientUrl string, postToUrl string, query string) {
 	client, err := api.NewClient(api.Config{
 		Address: prometheusClientUrl,
 	})
@@ -29,7 +29,7 @@ func runCommand(prometheusClientUrl string, postToUrl string) {
 	v1api := v1.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result, warnings, err := v1api.Query(ctx, "ambient_wx_temperature", time.Now())
+	result, warnings, err := v1api.Query(ctx, query, time.Now())
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -57,23 +57,24 @@ func runCommand(prometheusClientUrl string, postToUrl string) {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "prometheus_relay [prometheus_url] [post_to_url]",
+	Use:   "prometheus_relay [prometheus_url] [post_to_url] [prometheus_query]",
 	Short: "Relay prometheus data",
 	Long:  `Relay prometheus data`,
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
 		prometheusClientUrl := args[0]
 		postToUrl := args[1]
+		query := args[2]
 
 		if daemon {
 			fmt.Println("Running in daemon mode")
 			for {
-				runCommand(prometheusClientUrl, postToUrl)
+				runCommand(prometheusClientUrl, postToUrl, query)
 				time.Sleep(60 * time.Second)
 			}
 		}
 
-		runCommand(prometheusClientUrl, postToUrl)
+		runCommand(prometheusClientUrl, postToUrl, query)
 	},
 }
 
