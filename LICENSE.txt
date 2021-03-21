@@ -1,4 +1,4 @@
-Copyright (c) 2019 Dan Swain
+Copyright (c) 2021 Dan Swain
 
 MIT License
 
