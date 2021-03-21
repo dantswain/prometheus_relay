@@ -17,7 +17,7 @@ import (
 
 var daemon bool
 
-func runCommand(prometheusClientUrl string, postToUrl string, query string) {
+func runCommand(prometheusClientUrl string, postToUrl string, query string, nameLabel string) {
 	client, err := api.NewClient(api.Config{
 		Address: prometheusClientUrl,
 	})
@@ -41,7 +41,7 @@ func runCommand(prometheusClientUrl string, postToUrl string, query string) {
 	url := postToUrl
 	count := 0
 	for _, v := range result.(model.Vector) {
-		location := v.Metric[model.LabelName("location")]
+		location := v.Metric[model.LabelName(nameLabel)]
 		value := v.Value
 
 		vals := map[string]interface{}{"name": location, "value": value}
@@ -57,24 +57,25 @@ func runCommand(prometheusClientUrl string, postToUrl string, query string) {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "prometheus_relay [prometheus_url] [post_to_url] [prometheus_query]",
+	Use:   "prometheus_relay [prometheus_url] [post_to_url] [prometheus_query] [name_label]",
 	Short: "Relay prometheus data",
 	Long:  `Relay prometheus data`,
-	Args:  cobra.ExactArgs(3),
+	Args:  cobra.ExactArgs(4),
 	Run: func(cmd *cobra.Command, args []string) {
 		prometheusClientUrl := args[0]
 		postToUrl := args[1]
 		query := args[2]
+		nameLabel := args[3]
 
 		if daemon {
 			fmt.Println("Running in daemon mode")
 			for {
-				runCommand(prometheusClientUrl, postToUrl, query)
+				runCommand(prometheusClientUrl, postToUrl, query, nameLabel)
 				time.Sleep(60 * time.Second)
 			}
 		}
 
-		runCommand(prometheusClientUrl, postToUrl, query)
+		runCommand(prometheusClientUrl, postToUrl, query, nameLabel)
 	},
 }
 
